@@ -77,11 +77,12 @@ export default function Home() {
 
                 console.log('Campo: ', dadosDoForm.get('title'));
                 console.log('Campo: ', dadosDoForm.get('image'));
-
+                {/* Adicionada link para comunidade de forma  automatica*/}
                 const comunidade = {
                   id: new Date().toISOString(),
                   title: dadosDoForm.get('title'),
                   image: dadosDoForm.get('image'),
+                  src: dadosDoForm.get('src')
                 }
                 const comunidadesAtualizadas = [...comunidades, comunidade];
                 setComunidades(comunidadesAtualizadas)
@@ -99,6 +100,14 @@ export default function Home() {
                   placeholder="Coloque uma URL para usarmos de capa"
                   name="image"
                   aria-label="Coloque uma URL para usarmos de capa"
+                />
+              </div>
+
+              <div>
+                <input
+                  placeholder="Coloque uma URL para a comunidade"
+                  name="src"
+                  aria-label="Coloque uma URL para a comunidade"
                 />
               </div>
 
