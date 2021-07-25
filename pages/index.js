@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import nookies from 'nookies';
+import jwt from 'jsonwebtoken';
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet } from '../src/lib/AlurakutCommons';
@@ -34,8 +36,8 @@ function ProfileRelationsBox(propriedades){
 
 }
 
-export default function Home() {
-  const usuarioAleatorio = 'DanielleEmely';
+export default function Home(props) {
+  const usuarioAleatorio = props.githubUser;
   {/*const [comunidades, setComunidades] = React.useState([{
     id: '12802378123789378912789789123896123', 
     title: 'Loucos por Pets',
@@ -101,6 +103,12 @@ const [comunidades, setComunidades] = React.useState([]);
     })
 
   }, [])
+  var cont = 0
+  var contCom = 0
+  const numSeg = seguidores.length - 6
+  var content = " "
+  if (seguidores.length > 6)
+      content += "+" + numSeg + " no Guithub"
 
 
   return (
@@ -185,22 +193,45 @@ const [comunidades, setComunidades] = React.useState([]);
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
 
-        <ProfileRelationsBox title="Seguidores" items={seguidores} />
-
+        <ProfileRelationsBoxWrapper>
+        <h2 className="smallTitle"> Seguidores ({seguidores.length})</h2>
+          <ul>
+                {seguidores.map((itemAtual) => {
+                  console.log(itemAtual)
+                  cont++
+                  if (cont > 6) { return } else {
+                    return (
+                      <li>
+                      <a href={itemAtual.html_url} >
+                          <img src={itemAtual.avatar_url} />
+                          <span>{itemAtual.login}</span>
+                        </a>
+                      </li>
+                    )
+                  }
+                  
+                })}
+              </ul>
+              <h2 className="smallTitle"> <br></br> {content}</h2>
+          </ProfileRelationsBoxWrapper>
+        
         <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
               Comunidades ({comunidades.length})
             </h2>
             <ul>
               {comunidades.map((itemAtual) => {
-                return (
-                  <li key={itemAtual.id}>
-                   <a href={itemAtual.src}>
-                      <img src={itemAtual.image} />
-                      <span>{itemAtual.title}</span>
-                    </a>
-                  </li>
-                )
+                contCom++
+                if (contCom > 6) { return } else {
+                    return (
+                    <li key={itemAtual.id}>
+                    <a href={itemAtual.src}>
+                        <img src={itemAtual.image} />
+                        <span>{itemAtual.title}</span>
+                      </a>
+                    </li>
+                  )
+                }
               })}
             </ul>
           </ProfileRelationsBoxWrapper>
@@ -214,7 +245,7 @@ const [comunidades, setComunidades] = React.useState([]);
               {pessoasFavoritas.map((itemAtual) => {
                 return (
                   <li key={itemAtual}>
-                    <a href={`/users/${itemAtual}`}>
+                    <a href={`https://github.com/${itemAtual}`}>
                       <img src={`https://github.com/${itemAtual}.png`} />
                       <span>{itemAtual}</span>
                     </a>
@@ -228,3 +259,30 @@ const [comunidades, setComunidades] = React.useState([]);
     </>
   )
 }
+
+export async function getServerSideProps(context) {
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN;
+  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+    headers: {
+        Authorization: token
+      }
+  })
+  .then((resposta) => resposta.json())
+
+  if(!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+
+  const { githubUser } = jwt.decode(token);
+  return {
+    props: {
+      githubUser
+    }, // will be passed to the page component as props
+  }
+} 
